@@ -8,22 +8,22 @@ public class SpawnCaixa : NetworkBehaviour
     GameObject prefabCaixa;
 
     InputSystem_Actions inputSystemActions;
-    InputAction gerarCaixa;
+    InputAction interact;
 
     private void Awake()
     {
         inputSystemActions = new InputSystem_Actions();
-        gerarCaixa = inputSystemActions.Player.Interact;
+        interact = inputSystemActions.Player.SpawnBox;
     }
 
     private void OnEnable()
     {
-        gerarCaixa.Enable();
+        interact.Enable();
     }
 
     private void OnDisable()
     {
-        gerarCaixa.Disable();
+        interact.Disable();
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -38,7 +38,7 @@ public class SpawnCaixa : NetworkBehaviour
         if (!IsOwner)
             return;
 
-        if(gerarCaixa.WasPressedThisFrame())
+        if(interact.WasPressedThisFrame())
         {
             InserirCaixaCenaServerRPC();
         }
@@ -49,7 +49,7 @@ public class SpawnCaixa : NetworkBehaviour
 
     public void InserirCaixaCenaServerRPC()
     {
-      GameObject caixaJenniffer = Instantiate(prefabCaixa, transform.position + transform.forward * 3, transform.rotation);
+        GameObject caixaJenniffer = Instantiate(prefabCaixa, transform.position + transform.forward * 3, transform.rotation);
 
         NetworkObject instanciaJenniffer=caixaJenniffer.GetComponent<NetworkObject>();
         instanciaJenniffer.Spawn();
