@@ -338,6 +338,7 @@ GameObject:
   - component: {fileID: 155026891}
   - component: {fileID: 155026890}
   - component: {fileID: 155026892}
+  - component: {fileID: 155026893}
   m_Layer: 0
   m_Name: Score
   m_TagString: Untagged
@@ -445,6 +446,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Bola.ScoreUI
   scoreText: {fileID: 133488950}
+--- !u!114 &155026893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 155026887}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e4715518a9ca73746b4b57f24d357c7d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ScoreManager
+  scoreUI: {fileID: 155026892}
 --- !u!1 &190417643
 GameObject:
   m_ObjectHideFlags: 0
@@ -3449,7 +3463,7 @@ MonoBehaviour:
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
     Address: 127.0.0.1
-    Port: 7777
+    Port: 9999
     WebSocketPath: /
     ServerListenAddress: 127.0.0.1
     ClientBindPort: 0
