@@ -4,9 +4,9 @@ public class ColectableItem : MonoBehaviour, IInteractableObject
 {
     [SerializeField] private int points;
 
-    public void Interact()
+    public void Interact(PlayerId playerId)
     {
-        ScoreManager.Instance.IncreaseScore(points);
+        ScoreManager.Instance.IncreaseScore(playerId, points);
         Destroy(gameObject);
     }
 }

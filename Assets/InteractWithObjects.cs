@@ -1,4 +1,3 @@
-using System.Globalization;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,10 +6,12 @@ public class InteractWithObjects : NetworkBehaviour
 {
     [SerializeField] private SphereCollider sphereCollider;
 
-    InputSystem_Actions inputSystemActions;
-    InputAction interact;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Awake()
+    private InputSystem_Actions inputSystemActions;
+    private InputAction interact;
+
+    private PlayerId playerId;
+
+    private void Awake()
     {
         inputSystemActions = new InputSystem_Actions();
         interact = inputSystemActions.Player.Interact;
@@ -25,7 +26,8 @@ public class InteractWithObjects : NetworkBehaviour
     {
         interact.Disable();
     }
-    void Update()
+
+    private void Update()
     {
         if (!IsOwner)
             return;
@@ -42,8 +44,13 @@ public class InteractWithObjects : NetworkBehaviour
                 if (obj == null)
                     continue;
 
-                obj.Interact();
+                obj.Interact(playerId);
             }
         }
+    }
+
+    public void SetPlayer(PlayerId playerId)
+    {
+        this.playerId = playerId;
     }
 }

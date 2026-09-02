@@ -1,17 +1,12 @@
 ﻿using Assets.Scripts.Bola;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
     public static ScoreManager Instance { get; private set; }
 
-    [SerializeField] private ScoreUI scoreUI;
-
-    private int score;
+    [SerializeField] private LeaderboardUI leaderboardUI;
 
     public void Awake()
     {
@@ -21,9 +16,8 @@ public class ScoreManager : MonoBehaviour
             Destroy(gameObject);
     }
 
-    public void IncreaseScore(int amount)
+    public void IncreaseScore(PlayerId playerId, int amount)
     {
-        score += amount;
-        scoreUI.UpdateScoreInUI(score);
+        leaderboardUI.IncreaseScore(playerId, amount);
     }
 }
