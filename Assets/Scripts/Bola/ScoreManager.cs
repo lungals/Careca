@@ -1,6 +1,4 @@
-﻿using Assets.Scripts.Bola;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class ScoreManager : MonoBehaviour
 {
@@ -18,6 +16,6 @@ public class ScoreManager : MonoBehaviour
 
     public void IncreaseScore(PlayerId playerId, int amount)
     {
-        leaderboardUI.IncreaseScore(playerId, amount);
+        leaderboardUI.IncreaseScoreRPC(playerId, amount);
     }
 }

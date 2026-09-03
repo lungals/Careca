@@ -1,29 +1,26 @@
 ﻿using TMPro;
 using UnityEngine;
 
-namespace Assets.Scripts.Bola
+public class ScoreUI : MonoBehaviour
 {
-    public class ScoreUI : MonoBehaviour
+    [SerializeField] private TextMeshProUGUI scoreText;
+
+    private PlayerId ownerPlayer;
+
+    private int score;
+
+    public void Init(PlayerId playerId)
     {
-        [SerializeField] private TextMeshProUGUI scoreText;
+        ownerPlayer = playerId;
+    }
+    public void IncreaseScore(int amount)
+    {
+        score += amount;
+        UpdateScoreInUI(score);
+    }
 
-        private PlayerId ownerPlayer;
-
-        private int score;
-
-        public void Init(PlayerId playerId)
-        {
-            ownerPlayer = playerId;
-        }
-        public void IncreaseScore(int amount)
-        {
-            score += amount;
-            UpdateScoreInUI(amount);
-        }
-
-        public void UpdateScoreInUI(int score)
-        {
-            scoreText.text = score.ToString();
-        }
+    public void UpdateScoreInUI(int score)
+    {
+        scoreText.text = score.ToString();
     }
 }

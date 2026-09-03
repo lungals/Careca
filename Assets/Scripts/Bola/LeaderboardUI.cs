@@ -1,8 +1,8 @@
-﻿using Assets.Scripts.Bola;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
-public class LeaderboardUI : MonoBehaviour
+public class LeaderboardUI : NetworkBehaviour
 {
     [SerializeField] private ScoreUI scorePrefab;
     [SerializeField] private Transform scoreParent;
@@ -20,10 +20,11 @@ public class LeaderboardUI : MonoBehaviour
         PlayerRegister.OnPlayerUnregister += PlayerRegister_OnPlayerUnregister;
     }
 
-    private void OnDestroy()
+    public override void OnDestroy()
     {
         PlayerRegister.OnPlayerRegister -= PlayerRegister_OnPlayerRegister;
         PlayerRegister.OnPlayerUnregister -= PlayerRegister_OnPlayerUnregister;
+        base.OnDestroy();
     }
 
     private void PlayerRegister_OnPlayerRegister(PlayerId playerId)
@@ -53,7 +54,7 @@ public class LeaderboardUI : MonoBehaviour
         scoresPerPlayer.Remove(playerId);
     }
 
-    public void IncreaseScore(PlayerId playerId, int score)
+    public void IncreaseScoreRPC(PlayerId playerId, int score)
     {
         if (!scoresPerPlayer.ContainsKey(playerId))
             return;

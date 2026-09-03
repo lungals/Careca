@@ -1045,6 +1045,7 @@ GameObject:
   - component: {fileID: 922519960662005397}
   - component: {fileID: 6073426003079774694}
   - component: {fileID: 6792664982543102368}
+  - component: {fileID: 4742792718638569773}
   m_Layer: 8
   m_Name: PlayerArmatureNetwork
   m_TagString: Player
@@ -1485,6 +1486,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InteractWithObjects
   ShowTopMostFoldoutHeaderGroup: 1
   sphereCollider: {fileID: 122587184295174946}
+--- !u!114 &4742792718638569773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4416926081852918481}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6336c6d5a305e0748ac788932c885be6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerController
+  interactWithObjects: {fileID: 6792664982543102368}
 --- !u!1 &4523139366846529165
 GameObject:
   m_ObjectHideFlags: 0
