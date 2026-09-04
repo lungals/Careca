@@ -2,12 +2,13 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class LeaderboardUI : NetworkBehaviour
+public class LeaderboardUI : MonoBehaviour
 {
     [SerializeField] private ScoreUI scorePrefab;
     [SerializeField] private Transform scoreParent;
 
     private readonly Dictionary<PlayerId, ScoreUI> scoresPerPlayer = new();
+
 
     private void Start()
     {
@@ -20,11 +21,10 @@ public class LeaderboardUI : NetworkBehaviour
         PlayerRegister.OnPlayerUnregister += PlayerRegister_OnPlayerUnregister;
     }
 
-    public override void OnDestroy()
+    private void OnDestroy()
     {
         PlayerRegister.OnPlayerRegister -= PlayerRegister_OnPlayerRegister;
         PlayerRegister.OnPlayerUnregister -= PlayerRegister_OnPlayerUnregister;
-        base.OnDestroy();
     }
 
     private void PlayerRegister_OnPlayerRegister(PlayerId playerId)
@@ -50,15 +50,15 @@ public class LeaderboardUI : NetworkBehaviour
             return;
 
         ScoreUI instance = scoresPerPlayer[playerId];
-        Destroy(instance);
+        Destroy(instance.gameObject);
         scoresPerPlayer.Remove(playerId);
     }
 
-    public void IncreaseScoreRPC(PlayerId playerId, int score)
+    public void UpdateScoreRPC(PlayerId playerId, int score)
     {
         if (!scoresPerPlayer.ContainsKey(playerId))
             return;
-
-        scoresPerPlayer[playerId].IncreaseScore(score);
+        
+        scoresPerPlayer[playerId].UpdateScoreView(score);
     }
 }

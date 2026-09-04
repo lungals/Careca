@@ -1,10 +1,15 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
 
-public class ScoreManager : MonoBehaviour
+public class ScoreManager : NetworkBehaviour
 {
     public static ScoreManager Instance { get; private set; }
 
     [SerializeField] private LeaderboardUI leaderboardUI;
+
+    private readonly Dictionary<PlayerId, int> scores = new();
+
 
     public void Awake()
     {
@@ -16,6 +21,13 @@ public class ScoreManager : MonoBehaviour
 
     public void IncreaseScore(PlayerId playerId, int amount)
     {
-        leaderboardUI.IncreaseScoreRPC(playerId, amount);
+        if (!IsServer)
+            return;
+
+        if (!scores.ContainsKey(playerId))
+            return;
+
+        scores[playerId] += amount;
+        leaderboardUI.UpdateScoreRPC(playerId, amount);
     }
 }

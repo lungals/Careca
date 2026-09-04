@@ -1,16 +1,45 @@
-﻿using Unity.Netcode;
+﻿using System;
+using Unity.Netcode;
 
-public record PlayerId : INetworkSerializable
+public struct PlayerId : INetworkSerializable, IEquatable<PlayerId>
 {
-    public int Id { get; }
+    private int id;
+
+    public int Id => id;
 
     public PlayerId(int id)
     {
-        Id = id;
+        this.id = id;
     }
 
-    public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+    public void NetworkSerialize<T>(BufferSerializer<T> serializer)
+        where T : IReaderWriter
     {
-        
+        serializer.SerializeValue(ref id);
+    }
+
+    public bool Equals(PlayerId other)
+    {
+        return id == other.id;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is PlayerId other && Equals(other);
+    }
+
+    public override int GetHashCode()
+    {
+        return id;
+    }
+
+    public static bool operator ==(PlayerId left, PlayerId right)
+    {
+        return left.Equals(right);
+    }
+
+    public static bool operator !=(PlayerId left, PlayerId right)
+    {
+        return !left.Equals(right);
     }
 }

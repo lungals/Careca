@@ -13,13 +13,8 @@ public class ScoreUI : MonoBehaviour
     {
         ownerPlayer = playerId;
     }
-    public void IncreaseScore(int amount)
-    {
-        score += amount;
-        UpdateScoreInUI(score);
-    }
 
-    public void UpdateScoreInUI(int score)
+    public void UpdateScoreView(int score)
     {
         scoreText.text = score.ToString();
     }
