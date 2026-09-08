@@ -6,7 +6,7 @@ public class ColectableItem : MonoBehaviour, IInteractableObject
 
     public void Interact(PlayerId playerId)
     {
-        ScoreManager.Instance.IncreaseScore(playerId, points);
+        ScoreManager.Instance.IncreaseScoreRPC(playerId, points);
         Destroy(gameObject);
     }
 }

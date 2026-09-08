@@ -54,7 +54,7 @@ public class LeaderboardUI : MonoBehaviour
         scoresPerPlayer.Remove(playerId);
     }
 
-    public void UpdateScoreRPC(PlayerId playerId, int score)
+    public void UpdateScore(PlayerId playerId, int score)
     {
         if (!scoresPerPlayer.ContainsKey(playerId))
             return;
