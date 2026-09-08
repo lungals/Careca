@@ -4,61 +4,120 @@ using UnityEngine;
 
 public class LeaderboardUI : MonoBehaviour
 {
-    [SerializeField] private ScoreUI scorePrefab;
-    [SerializeField] private Transform scoreParent;
+    [SerializeField]
+    private ScoreUI scorePrefab;
+
+    [SerializeField]
+    private Transform scoreParent;
 
     private readonly Dictionary<PlayerId, ScoreUI> scoresPerPlayer = new();
 
+    private ScoreManager scoreManager;
 
     private void Start()
     {
-        PlayerId[] players = PlayerRegister.GetAllPlayersConnected();
+        scoreManager = ScoreManager.Instance;
 
-        foreach (PlayerId player in players)       
-            CreateScoreUI(player);
 
-        PlayerRegister.OnPlayerRegister += PlayerRegister_OnPlayerRegister;
-        PlayerRegister.OnPlayerUnregister += PlayerRegister_OnPlayerUnregister;
+        scoreManager.Leaderboard.OnListChanged += ScoreManager_OnLeaderboardChanged;
+
+        Refresh();
     }
 
     private void OnDestroy()
     {
-        PlayerRegister.OnPlayerRegister -= PlayerRegister_OnPlayerRegister;
-        PlayerRegister.OnPlayerUnregister -= PlayerRegister_OnPlayerUnregister;
+        if (scoreManager != null)
+        {
+            scoreManager.Leaderboard.OnListChanged -= ScoreManager_OnLeaderboardChanged;
+        }
     }
 
-    private void PlayerRegister_OnPlayerRegister(PlayerId playerId)
+    private void ScoreManager_OnLeaderboardChanged(NetworkListEvent<ScoreEntry> changeEvent)
     {
-        CreateScoreUI(playerId);
+        Refresh();
     }
 
-    private void PlayerRegister_OnPlayerUnregister(PlayerId playerId)
+    private void Refresh()
     {
-        RemoveScoreUI(playerId);
+        if (scoreManager == null)
+            return;
+
+        NetworkList<ScoreEntry> leaderboard = scoreManager.Leaderboard;
+
+        RemovePlayersNotInLeaderboard(leaderboard);
+        
+        for (int i = 0; i < leaderboard.Count; i++)
+        {
+            ScoreEntry entry = leaderboard[i];
+
+            if (!scoresPerPlayer.TryGetValue(entry.PlayerId, out ScoreUI scoreUI))
+            {
+                scoreUI = CreateScoreUI(entry.PlayerId);
+            }
+
+            scoreUI.UpdateScoreView(entry.Score);
+        }
+
+        RefreshUIOrder(leaderboard);
     }
 
-    private void CreateScoreUI(PlayerId playerId)
+    private ScoreUI CreateScoreUI(PlayerId playerId)
     {
         ScoreUI instance = Instantiate(scorePrefab, scoreParent);
         instance.Init(playerId);
+
         scoresPerPlayer.Add(playerId, instance);
+
+        return instance;
+    }
+
+    private void RemovePlayersNotInLeaderboard(NetworkList<ScoreEntry> leaderboard)
+    {
+        List<PlayerId> playersToRemove = new();
+
+        foreach (var pair in scoresPerPlayer)
+        {
+            bool found = false;
+
+            for (int i = 0; i < leaderboard.Count; i++)
+            {
+                if (leaderboard[i].PlayerId == pair.Key)
+                {
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+                playersToRemove.Add(pair.Key);
+        }
+
+        foreach (PlayerId playerId in playersToRemove)
+        {
+            RemoveScoreUI(playerId);
+        }
     }
 
     private void RemoveScoreUI(PlayerId playerId)
     {
-        if (!scoresPerPlayer.ContainsKey(playerId))
+        if (!scoresPerPlayer.TryGetValue(playerId, out ScoreUI instance))
             return;
 
-        ScoreUI instance = scoresPerPlayer[playerId];
         Destroy(instance.gameObject);
+
         scoresPerPlayer.Remove(playerId);
     }
 
-    public void UpdateScore(PlayerId playerId, int score)
+    private void RefreshUIOrder(NetworkList<ScoreEntry> leaderboard)
     {
-        if (!scoresPerPlayer.ContainsKey(playerId))
-            return;
-        
-        scoresPerPlayer[playerId].UpdateScoreView(score);
+        for (int i = 0; i < leaderboard.Count; i++)
+        {
+            PlayerId playerId = leaderboard[i].PlayerId;
+
+            if (!scoresPerPlayer.TryGetValue(playerId, out ScoreUI scoreUI))
+                continue;
+
+            scoreUI.transform.SetSiblingIndex(i);
+        }
     }
 }

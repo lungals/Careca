@@ -1,95 +1,253 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
-using UnityEditor;
 using UnityEngine;
 
 public class ScoreManager : NetworkBehaviour
 {
     public static ScoreManager Instance { get; private set; }
 
-    [SerializeField] private LeaderboardUI leaderboardUI;
+    [Header("Leaderboard")]
+    [SerializeField]
+    private int maxLeaderboardEntries = 100;
 
+    private NetworkList<ScoreEntry> leaderboard;
     private readonly Dictionary<PlayerId, int> scores = new();
 
-    public NetworkVariable<ScorePoint> Testando = new();
+    public NetworkList<ScoreEntry> Leaderboard => leaderboard;
 
-    public struct ScorePoint : INetworkSerializable
+    private void Awake()
     {
-        public PlayerId PlayerId;
-        public int Score;
-
-        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        if (Instance != null && Instance != this)
         {
-            serializer.SerializeValue(ref PlayerId);
-            serializer.SerializeValue(ref Score);
-        }
-    }
-
-    public void Awake()
-    {
-        if (Instance == null)
-            Instance = this;
-        else if (Instance != this)
             Destroy(gameObject);
+            return;
+        }
 
-        
+        Instance = this;
+
+        leaderboard = new NetworkList<ScoreEntry>();
     }
 
     public override void OnNetworkSpawn()
     {
-        Testando.OnValueChanged += Teste;
+        PlayerRegister.OnPlayerRegister += PlayerRegister_OnPlayerRegister;
+        PlayerRegister.OnPlayerUnregister += PlayerRegister_OnPlayerUnregister;
         base.OnNetworkSpawn();
-
-        Debug.Log("Se inscreveu");
     }
+
     public override void OnNetworkDespawn()
     {
-        Testando.OnValueChanged -= Teste;
+        PlayerRegister.OnPlayerRegister -= PlayerRegister_OnPlayerRegister;
+        PlayerRegister.OnPlayerUnregister -= PlayerRegister_OnPlayerUnregister;
         base.OnNetworkDespawn();
     }
 
-    private void Teste(ScorePoint lastValue, ScorePoint newValue)
+    #region Player
+
+    private void PlayerRegister_OnPlayerRegister(PlayerId playerId)
     {
-        if (!scores.ContainsKey(newValue.PlayerId))
-        {
-            scores[newValue.PlayerId] = newValue.Score;
-        }
-        else
-        {
-            scores[newValue.PlayerId] += newValue.Score;
-        }
-
-       /* if (!scores.ContainsKey(newValue.PlayerId))
-            return;*/
-
-        leaderboardUI.UpdateScore(newValue.PlayerId, scores[newValue.PlayerId]);
-        Debug.Log("Nem chamou");
+        RegisterPlayer(playerId);
     }
 
-    [Rpc(SendTo.Server)]
-    public void IncreaseScoreRPC(PlayerId playerId, int amount)
+    private void PlayerRegister_OnPlayerUnregister(PlayerId playerId)
     {
-        if (playerId == null)
-        {
-            Debug.Log("É null");
-        }
+        UnregisterPlayer(playerId);
+    }
 
-        ScorePoint score = new ScorePoint();
-        score.Score = amount;
-        score.PlayerId = playerId;
-
-        Testando.Value = score;
-        return;
-
+    public void RegisterPlayer(PlayerId playerId)
+    {
         if (!IsServer)
             return;
 
-        if (!scores.ContainsKey(playerId))
+        if (!IsValidPlayerId(playerId))
             return;
 
+        if (scores.ContainsKey(playerId))
+            return;
+
+        scores.Add(playerId, 0);
+    }
+
+    public void UnregisterPlayer(PlayerId playerId)
+    {
+        if (!IsServer)
+            return;
+
+        scores.Remove(playerId);
+
+        RemoveFromLeaderboard(playerId);
+    }
+
+    #endregion
+
+    #region Score
+
+    [Rpc(SendTo.Server)]
+    public void AddScoreRPC(PlayerId playerId, int amount)
+    {
+        /*if (!IsServer)
+        {
+            Debug.LogWarning(
+                "AddScore só pode ser chamado no servidor."
+            );
+
+            return;
+        }*/
+
+        if (!IsValidPlayerId(playerId))
+            return;
+
+        if (amount <= 0)
+        {
+            Debug.LogWarning(
+                $"Tentativa de adicionar score inválido: {amount}"
+            );
+
+            return;
+        }
+
+        if (!scores.ContainsKey(playerId))
+            scores.Add(playerId, 0);
 
         scores[playerId] += amount;
-        leaderboardUI.UpdateScore(playerId, amount);
+
+        UpdateLeaderboard(playerId);
     }
+
+    public int GetScore(PlayerId playerId)
+    {
+        if (!scores.TryGetValue(playerId, out int score))
+            return 0;
+
+        return score;
+    }
+
+    #endregion
+
+    #region Leaderboard
+
+
+    private void UpdateLeaderboard(PlayerId playerId)
+    {
+        if (!scores.TryGetValue(playerId, out int score))
+            return;
+
+        int index = FindLeaderboardIndex(playerId);
+
+        if (index >= 0)
+        {
+            leaderboard[index] = new ScoreEntry()
+            {
+                PlayerId = playerId,
+                Score = score
+            };
+
+            SortLeaderboard();
+            return;
+        }
+
+
+        if (leaderboard.Count < maxLeaderboardEntries)
+        {
+            leaderboard.Add(new ScoreEntry()
+            {
+                PlayerId = playerId,
+                Score = score
+            });
+
+            SortLeaderboard();
+            return;
+        }
+
+        // Leaderboard cheio. Descobrimos quem está em último.
+        int lowestIndex = FindLowestScoreIndex();
+
+        if (lowestIndex < 0)
+            return;
+
+        int lowestScore = leaderboard[lowestIndex].Score;
+
+        
+          // Só entra no Top se tiver score maior.
+         
+        if (score > lowestScore)
+        {
+            leaderboard[lowestIndex] = new ScoreEntry()
+            {
+                PlayerId = playerId,
+                Score = score
+            };
+
+            SortLeaderboard();
+        }
+    }
+
+    private void RemoveFromLeaderboard(PlayerId playerId)
+    {
+        int index = FindLeaderboardIndex(playerId);
+
+        if (index < 0)
+            return;
+
+        leaderboard.RemoveAt(index);
+    }
+
+    private int FindLeaderboardIndex(PlayerId playerId)
+    {
+        for (int i = 0; i < leaderboard.Count; i++)
+        {
+            if (leaderboard[i].PlayerId == playerId)
+                return i;
+        }
+
+        return -1;
+    }
+
+    private int FindLowestScoreIndex()
+    {
+        if (leaderboard.Count == 0)
+            return -1;
+
+        int lowestIndex = 0;
+
+        for (int i = 1; i < leaderboard.Count; i++)
+        {
+            if (leaderboard[i].Score < leaderboard[lowestIndex].Score)
+            {
+                lowestIndex = i;
+            }
+        }
+
+        return lowestIndex;
+    }
+
+    private void SortLeaderboard()
+    {
+        for (int i = 0; i < leaderboard.Count - 1; i++)
+        {
+            for (int j = i + 1; j < leaderboard.Count; j++)
+            {
+                if (leaderboard[j].Score > leaderboard[i].Score)
+                {
+                    ScoreEntry scoreEntry = leaderboard[i];
+
+                    leaderboard[i] = leaderboard[j];
+                    leaderboard[j] = scoreEntry;
+                }
+            }
+        }
+    }
+
+    private bool IsValidPlayerId(PlayerId playerId)
+    {
+        if (playerId.Id < 0)
+        {
+            Debug.LogError($"PlayerId inválido: {playerId.Id}");
+            return false;
+        }
+
+        return true;
+    }
+
+    #endregion
 }

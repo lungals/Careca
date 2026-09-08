@@ -255,6 +255,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Assets.Scripts.Bola.ScoreUI
   scoreText: {fileID: 1021284501198222042}
+  playerIdText: {fileID: 4740784419098289969}
 --- !u!1 &4934456812498644099
 GameObject:
   m_ObjectHideFlags: 0
