@@ -1,8 +1,8 @@
 # MEMBROS
 
-Alexandre Tavares
-Andrey Bispo
-Ellen Cruz 
-Gabriel de Campos
-Lucas Bragança
-rodrigo mamede
+Alexandre Tavares <br>
+Andrey Bispo <br>
+Ellen Cruz  <br>
+Gabriel de Campos <br>
+Lucas Bragança <br>
+rodrigo mamede <br>
